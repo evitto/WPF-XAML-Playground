@@ -1,6 +1,10 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\WPF Forms",
+    "\\WPF Forms\\WpfApp1",
+    "\\WPF Forms\\WpfApp1\\WpfApp1"
   ],
+  "SelectedNode": "\\WPF Forms\\WpfApp1\\WpfApp1\\MainWindow.xaml",
   "PreviewInSolutionExplorer": false
 }
