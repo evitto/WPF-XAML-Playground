@@ -1,66 +1,21 @@
-# -*- coding: utf-8 -*-
+from Autodesk.Revit.DB import *
 
-import os
-from pyrevit import script
+uidoc = __revit__.ActiveUIDocument
+doc = uidoc.Document
 
-# -------------------------------------------------------
-# CONFIG
-# -------------------------------------------------------
+columns = FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_StructuralColumns).WhereElementIsElementType().ToElements()
+levels = FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Levels).WhereElementIsNotElementType().ToElements()
 
-log_folder = r'C:\Users\e.vitto\Documents\DAE REVIT LOG'
-log_file = os.path.join(log_folder, 'button_click_log.txt')
+for level in levels:
+    elevation = level.get_Parameter(BuiltInParameter.LEVEL_ELEV).AsDouble()
+    if elevation == 3000/304.8:
+        level_0 = level
+for column in columns:
+    column_name = column.get_Parameter(BuiltInParameter.SYMBOL_NAME_PARAM).AsString()
+    if column_name == '450x600':
+        column_type = column
 
-# Get button name automatically from pyRevit
-button_name = script.get_info().name
-
-# -------------------------------------------------------
-# CREATE FOLDER IF NOT EXISTS
-# -------------------------------------------------------
-
-if not os.path.exists(log_folder):
-    os.makedirs(log_folder)
-
-# -------------------------------------------------------
-# CREATE FILE IF NOT EXISTS
-# -------------------------------------------------------
-
-if not os.path.exists(log_file):
-    with open(log_file, 'w') as f:
-        f.write('')
-
-# -------------------------------------------------------
-# READ EXISTING DATA
-# -------------------------------------------------------
-
-data = {}
-
-with open(log_file, 'r') as f:
-    lines = f.readlines()
-
-for line in lines:
-    if ':' in line:
-        name, value = line.split(':')
-        data[name.strip()] = int(value.strip())
-
-# -------------------------------------------------------
-# UPDATE CLICK COUNT
-# -------------------------------------------------------
-
-if button_name in data:
-    data[button_name] += 1
-else:
-    data[button_name] = 1
-
-# -------------------------------------------------------
-# WRITE UPDATED DATA
-# -------------------------------------------------------
-
-with open(log_file, 'w') as f:
-    for key in sorted(data):
-        f.write('{} : {}\n'.format(key, data[key]))
-
-# -------------------------------------------------------
-# OPTIONAL PRINT
-# -------------------------------------------------------
-
-print('{} clicked {} times'.format(button_name, data[button_name]))
+t = Transaction(doc,"Column")
+t.Start()
+col = doc.Create.NewFamilyInstance(XYZ(0,0,0),column_type,level_0,StructuralType.Column)
+t.Commit()
