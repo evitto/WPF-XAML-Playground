@@ -1,21 +1,18 @@
 from Autodesk.Revit.DB import *
+from Autodesk.Revit.DB.Structure import StructuralType
+doc = __revit__.ActiveUIDocument.Document
 
-uidoc = __revit__.ActiveUIDocument
-doc = uidoc.Document
 
-columns = FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_StructuralColumns).WhereElementIsElementType().ToElements()
-levels = FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_Levels).WhereElementIsNotElementType().ToElements()
+columnTypes = FilteredElementCollector(doc).OfCategory(BuiltInCategory.OST_StructuralColumns).WhereElementIsElementType().ToElements()
+levels = FilteredElementCollector(doc).OfClass(Level).ToElements()
+symbol = columnTypes[4]
+level = levels[0]
 
-for level in levels:
-    elevation = level.get_Parameter(BuiltInParameter.LEVEL_ELEV).AsDouble()
-    if elevation == 3000/304.8:
-        level_0 = level
-for column in columns:
-    column_name = column.get_Parameter(BuiltInParameter.SYMBOL_NAME_PARAM).AsString()
-    if column_name == '450x600':
-        column_type = column
 
-t = Transaction(doc,"Column")
+t = Transaction(doc, 'Column')
 t.Start()
-col = doc.Create.NewFamilyInstance(XYZ(0,0,0),column_type,level_0,StructuralType.Column)
+if not symbol.IsActive:
+    symbol.Activate()
+    doc.Regenerate()
+cCol = doc.Create.NewFamilyInstance(XYZ(0,0,0),symbol,level,StructuralType.Column)
 t.Commit()
